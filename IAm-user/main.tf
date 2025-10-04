@@ -1,14 +1,15 @@
-IAM User with Policy
-
+IAM User with Policy and Bucket Versioning 
 
 provider "aws" {
   region = "us-east-1"
 }
 
+# IAM User
 resource "aws_iam_user" "my_user" {
   name = "dev-user"
 }
 
+# IAM Policy for S3 full access
 resource "aws_iam_user_policy" "my_user_policy" {
   name = "S3FullAccess"
   user = aws_iam_user.my_user.name
@@ -23,5 +24,23 @@ resource "aws_iam_user_policy" "my_user_policy" {
       }
     ]
   })
+}
+
+# S3 Bucket
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "my-secure-versioned-bucket-12345" # must be globally unique
+  tags = {
+    Name        = "MySecureBucket"
+    Environment = "Dev"
+  }
+}
+
+# Enable Versioning on S3 Bucket
+resource "aws_s3_bucket_versioning" "my_bucket_versioning" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
