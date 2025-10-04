@@ -1,0 +1,217 @@
+Terraform
+-----------
+Terraform is an infrastructure as code (IaaC) tool that allows you to build, change, and version infrastructure safely and efficiently. 
+This includes both low-level components like compute instances, storage, and networking, as well as high-level components like DNS entries and SaaS features.
+
+Terraform Installation
+======================
+New:
+====
+https://www.terraform.io/downloads
+
+https://www.terraform.io/downloads
+
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+
+what is terraform registery?
+==================
+Discover Terraform providers that power all of Terraform’s resource types, or find modules for quickly deploying common infrastructure configurations.
+
+Terraform Providers:
+====================
+Providers are a logical abstraction of an upstream API. They are responsible for understanding API interactions and exposing resources.
+
+https://registry.terraform.io/browse/providers
+
+
+
+
+
+Terraform:
++++++++++++++++++++
+vim main.tf
+provider "aws" {
+  region = "us-east-1"
+  access_key = "AKIASYEKZZ7VBUYZLTXG"
+  secret_key = "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"
+}
+resource "aws_instance" "web1" {
+  ami           = "ami-02e136e904f3da870"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "web1"
+  }
+}
+
+Execution:
++++++++++++
+1. terraform init .
+2. terraform plan
+3. terraform apply
+4. terraform destoty(when its required)
+
+Woking with Variables :
++++++++++++++++
+provider "aws" {
+  region = "us-east-1"
+  access_key = "AKIASYEKZZ7VBUYZLTXG"
+  secret_key = "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"
+}
+
+/* comment section -- variable */
+variable "server_tag" {
+     default = "jenkins1"
+}
+
+resource "aws_instance" "myec2" {
+  ami           = "ami-02e136e904f3da870"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "${var.server_tag}"
+  }
+}
+/* output Section */
+
+output "mypub_dns" {
+        value = "${aws_instance.myec2.public_dns}"
+}
+
+Execution:
+
+terraform apply -auto-approve
+   
+   terraform apply -auto-approve
+   terraform apply -auto-approve -var server_tag=jenkins1_cmd_args
+   
+ Maps & Lookups:
+++++++++++++++++++
+map Function:
+
+The map function is no longer available. Prior to Terraform v0.12 it was the only available syntax for writing a literal map inside an expression, but Terraform v0.12 introduced a new first-class syntax.
+
+To update an expression like map("a", "b", "c", "d"), write the following instead:
+
+Lookups:
+
+lookup Function
+lookup retrieves the value of a single element from a map, given its key.
+ If the given key does not exist, the given default value is returned instead
+
+Importent Server:
+1. Dev Server
+2. Prod server_tag 
+vim variable.tf
+ 
+ variable "env" {
+         "description" = "dev or prod"
+}
+variable = "my_key_name" {
+"default" = {
+       "dev" = "dev-key"
+       "prod" = "prod-key"
+       }
+}
+variable "my_server_name" {
+"default" = {
+      "dev" = "dev-server"
+      "prod" = "prod-server"
+     }
+}
+
+ cat main.tf
+provider "aws" {
+  region = "us-east-1"
+  access_key = "AKIASYEKZZ7VBUYZLTXG"
+  secret_key = "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"
+}
+cat main.tf
+
+/* comment section -- variable */
+variable "server_tag" {
+     default = "jenkins1"
+}
+
+resource "aws_instance" "myec2" {
+  ami           = "ami-02e136e904f3da870"
+  instance_type = "t2.micro"
+  key_name  = "${lookup(var.my_key_name,var.env)}"
+  tags = {
+     Name = "${lookup(var.my_server_name,var.env)}"
+  }
+}
+
+ cat output.tf
+ 
+                                                                       /* output section */
+
+output "mypub_dns_jenkins" {
+       value = "${aws_instance.myec2.public_dns},${aws_instance.myec2.availability_zone}"
+}
+
+Execution:
+
+ terraform plan -var env-dev
+terraform plan -var env-prod
+
+terraform apply -auto-approve -var env=dev
+terraform apply -auto-approve -var env=prod
+
+-  tearrform workspace list
+-  tearrform workspace new dev
+
+switch from dev to prod :
+++++++++++
+terraform workspace select dev
+
+Working with Module:
++++++++++++++++++==
+EC2, S3, VPC
+
+S3 Module:
+++++++
+provider "aws" {
+    region = "us-east-1"
+    access_key = "AKIASYEKZZ7VBUYZLTXG"
+    secret_key = "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"
+}
+
+resource "random_id" "myrandid" {
+ byte_length = 2
+}
+
+/* variable*/
+variable "bucket_name" {
+}
+
+resource "aws_s3_bucket" "mys3bucket" {
+ bucket = "${var.bucket_name}-${random_id.myrandid.dec}"
+ tags = {
+  Name = "${var.bucket_name}-${random_id.myrandid.dec}"
+  }
+ }
+Execution:
++++
+terraform init .
+ terraform apply -auto-approve -var bucket_name="mytestoct"
+ 
+Terraform Taint
++++++++++++++++++++++
+The terraform taint command informs Terraform that a particular object has become degraded or damaged. 
+Terraform represents this by marking the object as "tainted" in the Terraform state, and Terraform will propose to replace it in the next plan you create.
+
+what is the diffremece Terraform Resource and Terraform modules?
+===================================
+
+Terraform resources called - single reosurces - means - EC2,LB, VPC, IAM
+Terrafrom module called - A module is a container for multiple resources that are used together. 
+
+
+Terraform module
+=====================
+https://registry.terraform.io/search/modules?namespace=terraform-aws-modules
+
+
+
+
